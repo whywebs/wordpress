@@ -7,9 +7,9 @@
     <property name="db.name" value="wp_whywebs"/>
     <property name="download.wp.url" value="https://wordpress.org/latest.tar.gz"/>
     <property name="dir.actual" value="https://whywebs.dev"/>
-    
+    <property name="composerPhar" value="${dir.base}/composer.phar"/>
 
-    <!-- #Database info
+    <!-- #TODO Database info
 	Also the wp-config.php incase of a local installation.
 	 -->
     <property name="db.url" value="mysql:host=localhost"/>
@@ -27,7 +27,7 @@
     <property name="wp.title" value="whywebs Inc"/>
     <property name="wp.user" value="admin"/>
     <property name="wp.password" value="whywebs123@"/>
-    <property name="wp.email" value="melayyoub@whywebs.com"/>
+    <property name="wp.email" value="sam@whywebs.com"/>
 	<property name="wp.title.ref" value="whywebs"/>
 
 	<!-- file location of wordpress download -->
@@ -37,6 +37,7 @@
 	<property name="dir.tmp" value="${dir.base}/tmp"/>
 	<property name="dir.tmp.plugins" value="${dir.base}/plugins"/>
 	<property name="dir.tmp.themes" value="${dir.base}/themes"/>
+	<property name="dir.tmp.vendor" value="${dir.base}/vendor"/>
 
 	<tstamp>
 		<format property="buildtime" pattern="${dt.buildformat}"/>
@@ -84,6 +85,10 @@
 	<!-- Drupal build tasks -->
     <target name="whywebs-build"
     depends="
+    php-check,
+    composer-download,
+    composer-check,
+    composerInstall,
     wp:prepare,
     wp:clean-files,
     wp:install,
@@ -93,7 +98,51 @@
  
 	<echo msg="${message}"/>  
 	 </target>
+    
 
+ 	<!-- check php first -->
+	  <target name="php-check">
+	    <condition property="php" value="php">
+	      <not>
+	        <isset property="${php}"/>
+
+	      </not>
+	    </condition>
+	    <echo msg="${php}"/>
+	  </target>
+	<!--  Install all the requirments com through and to composer  -->
+ 	<target name="composer-check">
+	    <available file="${composerPhar}" property="composer.present"/>
+	  </target>
+
+	  <target name="composer-download" depends="composer-check">
+	    <property name="composer.noselfupdate" value="true"/>
+	    <httpget url="https://getcomposer.org/composer.phar" dir="${dir.base}"/>
+	  </target>
+
+	  <target name="composer-selfupdate" depends="php-check,composer-download" unless="composer.noselfupdate">
+	    <exec executable="${php}">
+	      <arg value="${composerPhar}"/>
+	      <arg value="self-update"/>
+	      <arg value="--quiet"/>
+	    </exec>
+	  </target>
+
+	  <target name="composer" depends="composer-selfupdate" unless="composer.noupdate" description="Run composer update">
+	    <exec executable="${php}">
+	      <arg value="${composerPhar}"/>
+	      <arg value="update"/>
+	    </exec>
+	  </target>
+	
+	<target name="composerInstall" description="Installing dependencies by composer" depends="composer-check">
+        <delete dir="${dir.wp}/vendor"/>
+
+        <composer command="install">
+        	<arg/>
+        </composer>
+    </target>
+    
 	 <!--  <target name="prepare" depends="clean" description="Creating new WordPress directory"> -->
 	<target name="wp:prepare"  description="Creating new WordPress directory">
 
@@ -147,11 +196,9 @@
 	<target name="wp:downloadplugins" description="Download WordPress Plugin">
 
 		<httpget url="https://downloads.wordpress.org/plugin/akismet.3.3.2.zip" dir="${dir.tmp.plugins}" />
-		<httpget url="https://downloads.wordpress.org/plugin/all-in-one-seo-pack.2.3.12.5.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/broken-link-checker.1.11.2.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/contact-form-7.4.7.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/duplicator.1.2.6.zip" dir="${dir.tmp.plugins}" />
-		<httpget url="https://downloads.wordpress.org/plugin/all-in-one-wp-migration.6.44.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/google-analytics-dashboard-for-wp.4.9.6.2.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/theme-my-login.6.4.9.zip" dir="${dir.tmp.plugins}" />
 		<httpget url="https://downloads.wordpress.org/plugin/jetpack.4.9.zip" dir="${dir.tmp.plugins}" />
@@ -233,8 +280,22 @@
   
 		</copy>
 
+		<!-- move vendor to wordpress vendor files  dest  -->
+
+		<copy todir="${dir.wp}/vendor" includeemptydirs="true">
+
+			<fileset dir="${dir.tmp.vendor}" >
+			  <include name="**" />
+			</fileset>
+  
+		</copy>
+
+		<delete dir="${dir.tmp.vendor}" />
+		<echo msg="vendor folder moved into the public folder"/>
 		<delete dir="${dir.tmp.plugins}" />
+		<echo msg="plugins folder moved into the public folder"/>
 		<delete dir="${dir.tmp.themes}" />
+		<echo msg="themes folder moved into the public folder"/>
 
 	</target>
 	<!-- Bypass the wordpress installer defines global ABSPATH/Version to prevent errors. -->

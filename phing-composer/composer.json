@@ -2,8 +2,10 @@
     "name": "elayyoub/wordpress",
     "description": "Whywebs.com Free wordpress phing installation",
     "require": {
-        "phing/phing": "*",
-        "wp-cli/wp-cli": "^1.1"
+        "pear/console_commandline": "*",
+        "pear/log": "*",
+        "pear/pear_exception": "*",
+        "phing/phing": "*"
     },
     "authors": [
         {
@@ -11,8 +13,5 @@
             "email": "melayyoub@outsellinc.com"
         }
     ],
-    "minimum-stability": "dev",
-    "config": {
-        "bin-dir": "vendor/bin/"
-    }
+    "minimum-stability": "dev"
 }

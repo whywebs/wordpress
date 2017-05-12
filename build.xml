@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="WPwhywebs" default="whywebs-build" description="whywebs WP only with one file using phing">
+ <property name="message" value="whywebs.Com WP phing by Mutasem Elayyoub!!"/>
+ 	<!-- Generic variables -->
+ 	<property name="dir.base" value="${project.basedir}"/>
+    <property name="dir.wp" value="${dir.base}/public"/>
+    <property name="db.name" value="wp_whywebs"/>
+    <property name="download.wp.url" value="https://wordpress.org/latest.tar.gz"/>
+    <property name="dir.actual" value="https://whywebs.dev"/>
+    
+
+    <!-- #Database info
+	Also the wp-config.php incase of a local installation.
+	 -->
+    <property name="db.url" value="mysql:host=localhost"/>
+    <property name="db.userid" value="root"/>
+    <property name="db.password" value="root"/>
+    <property name="db.wp.host" value="localhost"/>
+
+    <property name="wp.config.db.prefix" value="wp_"/>
+    <property name="wp.config.debug" value="TRUE"/>
+    <property name="wp.config.savequeries" value="TRUE"/>
+    <property name="dt.buildformat" value="%a, %d %b %Y, %H:%M"/>
+    <property name="dt.fileformat" value="%Y-%m-%d-%H-%M"/>
+
+    <!-- #Login info - this is normally set during WordPress install -->
+    <property name="wp.title" value="whywebs Inc"/>
+    <property name="wp.user" value="admin"/>
+    <property name="wp.password" value="whywebs123@"/>
+    <property name="wp.email" value="melayyoub@whywebs.com"/>
+	<property name="wp.title.ref" value="whywebs"/>
+
+	<!-- file location of wordpress download -->
+	<property name="wp.title.ref" value="https://wordpress.org/latest.tar.gz"/>
+
+ 	<!-- set a temp dirs -->
+	<property name="dir.tmp" value="${dir.base}/tmp"/>
+	<property name="dir.tmp.plugins" value="${dir.base}/plugins"/>
+	<property name="dir.tmp.themes" value="${dir.base}/themes"/>
+
+	<tstamp>
+		<format property="buildtime" pattern="${dt.buildformat}"/>
+		<format property="filestamp" pattern="${dt.fileformat}"/>
+	</tstamp>
+
+
+
+	<!-- Dump database to file-->
+	<!--       
+	<target name="wp-db-make">
+		<taskdef name="pdosqlexec" classname="phing.tasks.ext.pdo.PDOSQLExecTask"/>
+		<pdosqlexec url="${db.url}"
+					userid="${db.userid}"
+					password="${db.password}"
+					onerror="abort"
+					autocommit="true">
+			CREATE DATABASE ${db.name};
+		</pdosqlexec>        
+	</target>
+
+	<target name="wp-db-clean">
+		<taskdef name="pdosqlexec" classname="phing.tasks.ext.pdo.PDOSQLExecTask" />
+		<pdosqlexec url="${db.url}"
+				  userid="${db.userid}"
+				  password="${db.password}"
+				  onerror="abort"
+				  autocommit="true">
+			DROP DATABASE ${db.name};
+		</pdosqlexec>
+	</target>
+	
+	<target name="wp-db-dump">
+
+		<mkdir dir="${wp.db.dump.folder}" />
+
+		<exec command="mysqldump -h ${wp.db.dump.host} -u ${wp.db.dump.username} -p${wp.db.dump.pass} ${wp.db.dump.name} > ${wp.db.dump.send}"  />
+	</target>
+
+	  -->
+
+
+
+
+	<!-- Drupal build tasks -->
+    <target name="whywebs-build"
+    depends="
+    wp:prepare,
+    wp:clean-files,
+    wp:install,
+    wp:downloadplugins,
+    wp:movefiles
+    " description="Build the whywebs Wp codebase">
+ 
+	<echo msg="${message}"/>  
+	 </target>
+
+	 <!--  <target name="prepare" depends="clean" description="Creating new WordPress directory"> -->
+	<target name="wp:prepare"  description="Creating new WordPress directory">
+
+		<echo msg="Preparing build directory" />
+
+
+	   <!-- Create default directory if it does not exist. -->
+        <if>
+            <not>
+                <available file="${dir.wp}" type="dir" />
+            </not>
+            <then>
+                <!-- Prepare default sites directory for installation. -->
+                <mkdir dir="${dir.wp}" mode="0755"/>
+                <mkdir dir="${dir.wp}/tmp" mode="0777"/>
+            </then>
+        </if>
+
+	</target>
+
+	<!--  Clean the build directory -->
+	<target name="wp:clean-files"  description="Cleaning the WordPress directory">
+
+		<delete dir="${dir.tmp}" />
+		<!-- create temp directories for downloads -->
+		<mkdir dir="${dir.tmp}" />
+		<mkdir dir="${dir.tmp.plugins}" />
+		<mkdir dir="${dir.tmp.themes}" /> 
+		<echo msg="${dir.tmp}" />    
+
+	</target>
+
+	<!-- Start Installing Wordpress -->
+
+	<target name="wp:install" description="Download WordPress">
+
+		<!-- download our wordpress zip -->
+		<httpget url="${download.wp.url}" dir="${dir.tmp}" />
+
+		<!-- unzip wordpress - unable to extract to same dir -->
+		<untar todir="${dir.tmp}" >
+			<fileset dir="${dir.tmp}">
+				<include name="*.tar.gz"/>
+			</fileset>
+		</untar>
+
+	</target>
+
+	<!-- Download WordPress Plugins -->
+
+	<target name="wp:downloadplugins" description="Download WordPress Plugin">
+
+		<httpget url="https://downloads.wordpress.org/plugin/akismet.3.3.2.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/all-in-one-seo-pack.2.3.12.5.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/broken-link-checker.1.11.2.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/contact-form-7.4.7.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/duplicator.1.2.6.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/all-in-one-wp-migration.6.44.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/google-analytics-dashboard-for-wp.4.9.6.2.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/theme-my-login.6.4.9.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/jetpack.4.9.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/seo-image-optimizer.1.0.8.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/regenerate-thumbnails.zip" dir="${dir.tmp.plugins}" />
+		<httpget url="https://downloads.wordpress.org/plugin/wp-super-cache.1.4.9.zip" dir="${dir.tmp.plugins}" />
+
+		<echo msg="Plugins downloaded and ready to install"/>
+		<!-- unzip our collection of plugins -->
+		<unzip todir="${dir.tmp.plugins}" >
+			<fileset dir="${dir.tmp.plugins}">
+				<include name="*.zip"/>
+			</fileset>
+		</unzip>
+
+		<!-- clean up zip files -->
+		<delete>
+			<fileset dir="${dir.tmp.plugins}">
+				<include name="*.zip"/>
+			</fileset>
+		</delete>
+
+	</target>
+
+
+	<!-- Download WordPress Themes -->
+
+	<target name="wp:downloadthemess" description="Download WordPress Plugin">
+
+		<httpget url="https://downloads.wordpress.org/plugin/akismet.3.3.2.zip" dir="${dir.tmp.themes}" />
+
+
+		<echo msg="Themes downloaded and ready to install"/>
+		<!-- unzip our collection of plugins -->
+		<unzip todir="${dir.tmp}/wp-content/themes" >
+			<fileset dir="${dir.tmp.themes}">
+				<include name="*.zip"/>
+			</fileset>
+		</unzip>
+
+		<!-- clean up zip files -->
+		<delete>
+			<fileset dir="${dir.tmp.themes}">
+				<include name="*.zip"/>
+			</fileset>
+		</delete>
+
+	</target>
+
+	<target name="wp:movefiles" description="Move WordPress files into production folder">
+
+	
+		<!-- move to wordpress tmp files  dest  -->
+		<copy todir="${dir.wp}" includeemptydirs="true">
+
+			<fileset dir="${dir.tmp}/wordpress" >
+			  <include name="**" />
+			</fileset>
+  
+		</copy>
+
+		<delete dir="${dir.tmp}" />
+
+		<!-- move dir.tmp.plugins to wordpress plugins tmp files  dest  -->
+		<copy todir="${dir.wp}/wp-content/plugins" includeemptydirs="false">
+
+			<fileset dir="${dir.tmp.plugins}" >
+			  <include name="**" />
+			</fileset>
+  
+		</copy>
+
+		<!-- move dir.tmp.themes to wordpress themes tmp files  dest  -->
+		<copy todir="${dir.wp}/wp-content/themes" includeemptydirs="false">
+
+			<fileset dir="${dir.tmp.themes}" >
+			  <include name="**" />
+			</fileset>
+  
+		</copy>
+
+		<delete dir="${dir.tmp.plugins}" />
+		<delete dir="${dir.tmp.themes}" />
+
+	</target>
+	<!-- Bypass the wordpress installer defines global ABSPATH/Version to prevent errors. -->
+
+<target name="wp:wpcheck">
+<checker/>
+</target>
+
+<adhoc-task name="checker"><![CDATA[
+	class BarTask extends Task {
+		  
+		function main() {
+
+			require_once('${dir.wp}/wp-load.php');
+			require_once('${dir.wp}/wp-admin/includes/upgrade.php');
+			require_once('${dir.wp}/wp-includes/wp-db.php');
+
+	        //we need to update the db version for some reason
+
+	        require('${dir.wp}/wp-includes/version.php');
+
+		}
+	}
+	
+]]>
+</adhoc-task>
+
+
+
+</project>

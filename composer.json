@@ -1,0 +1,15 @@
+{
+    "name": "elayyoub/wordpress",
+    "description": "Whywebs.com Free wordpress phing installation",
+    "require": {
+        "phing/phing": "^2.16",
+        "wp-cli/wp-cli": "^1.1"
+    },
+    "authors": [
+        {
+            "name": "Mutasem Elayyoub",
+            "email": "melayyoub@outsellinc.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}

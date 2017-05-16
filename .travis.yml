@@ -1,0 +1,29 @@
+language: php
+sudo: required
+
+services:
+  - docker
+
+php:
+  - '5.6'
+services:
+  - docker
+
+install:
+
+  # Install composer deps
+  - composer install
+
+script:
+  # Run code and phing
+  - phing -debug
+  # Run code and styling
+  - composer test
+
+  # Run some sanity checks
+  - node --version
+  - npm --version
+  - bower --version
+  - gulp --version
+  - bower --version
+  - composer --version

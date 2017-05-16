@@ -93,6 +93,7 @@
     wp:clean-files,
     wp:install,
     wp:downloadplugins,
+    wp:bowerInstall,
     wp:movefiles
     " description="Build the whywebs Wp codebase">
  
@@ -110,6 +111,16 @@
 	    </condition>
 	    <echo msg="${php}"/>
 	  </target>
+      
+      <!--  Install Bower dependencies  -->
+      
+      <target name="ww:bowerInstall" description="Installing bower dependencies">
+          <exec executable="bower">
+              <arg value="install" />
+          </exec>
+      </target>
+      
+    
 	<!--  Install all the requirments com through and to composer  -->
  	<target name="composer-check">
 	    <available file="${composerPhar}" property="composer.present"/>
